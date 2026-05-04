@@ -2,6 +2,14 @@
 
 Sync Pulumi stack outputs into `wrangler.toml` / `wrangler.jsonc` binding IDs in-place.
 
+When you provision Cloudflare Workers infrastructure with Pulumi — Hyperdrive, KV
+namespaces, R2 buckets, Queues — Pulumi outputs the resource IDs. Your wrangler
+config needs those IDs to deploy. There is no built-in bridge between the two tools.
+
+This package reads `pulumi stack output --json`, finds the matching binding blocks
+in your existing wrangler file, and updates the IDs in-place. Everything else —
+comments, ordering, other env blocks — is left untouched.
+
 ## Install
 
 ```sh
