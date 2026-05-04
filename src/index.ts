@@ -5,6 +5,8 @@ import { runPulumiStackOutput } from "./run-pulumi.js";
 
 export type { BindingMapping, VerifyEntry, SyncOptions, SyncResult } from "./types.js";
 export { patchEnvBinding } from "./patch-toml.js";
+export { syncJsoncBindings } from "./patch-jsonc.js";
+export type { JsoncBindingPatch, SyncJsoncOptions, SyncJsoncResult } from "./patch-jsonc.js";
 
 import type { SyncOptions, SyncResult } from "./types.js";
 

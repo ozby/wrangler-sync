@@ -1,6 +1,6 @@
 {
   "name": "@ozby/wrangler-sync",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Sync Pulumi stack outputs into wrangler.toml binding IDs in-place",
   "type": "module",
   "sideEffects": false,
