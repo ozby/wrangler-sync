@@ -1,14 +1,45 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { patchEnvBinding } from "./patch-toml.js";
+import {
+  patchEnvBinding,
+  renderEnvCustomDomainRoute,
+  upsertEnvCustomDomainRoute,
+  wranglerEnvName,
+} from "./patch-toml.js";
 import { runPulumiStackOutput } from "./run-pulumi.js";
+import {
+  syncJsoncBindings,
+  upsertEnvCustomDomainRoute as upsertEnvJsoncCustomDomainRoute,
+  upsertEnvDurableObjectBinding,
+} from "./patch-jsonc.js";
 
-export type { BindingMapping, VerifyEntry, SyncOptions, SyncResult } from "./types.js";
-export { patchEnvBinding } from "./patch-toml.js";
-export { syncJsoncBindings } from "./patch-jsonc.js";
-export type { JsoncBindingPatch, SyncJsoncOptions, SyncJsoncResult } from "./patch-jsonc.js";
+export type {
+  BindingMapping,
+  PreviewCleanupPlan,
+  SyncOptions,
+  SyncResult,
+  VerifyEntry,
+} from "./types.js";
+export {
+  patchEnvBinding,
+  renderEnvCustomDomainRoute,
+  upsertEnvCustomDomainRoute,
+  wranglerEnvName,
+} from "./patch-toml.js";
+export {
+  syncJsoncBindings,
+  upsertEnvJsoncCustomDomainRoute,
+  upsertEnvDurableObjectBinding,
+};
+export type {
+  JsoncBindingPatch,
+  JsoncCustomDomainRoute,
+  JsoncDurableObjectBinding,
+  SyncJsoncOptions,
+  SyncJsoncResult,
+} from "./patch-jsonc.js";
 
-import type { SyncOptions, SyncResult } from "./types.js";
+import type { PreviewCleanupPlan, SyncOptions, SyncResult } from "./types.js";
 
 /**
  * Read Pulumi stack outputs and patch matching binding lines in `wrangler.toml`
@@ -86,4 +117,20 @@ function extractCurrentValue(toml: string, header: string, key: string): string 
   const keyRe = new RegExp(`(?:^|\\n)\\s*${key}\\s*=\\s*"([^"]*)"`, "m");
   const m = keyRe.exec(blockBody);
   return m?.[1] ?? "";
+}
+
+export function derivePreviewHostname(laneId: string, baseDomain: string): string {
+  return `${wranglerEnvName(laneId)}.${baseDomain}`;
+}
+
+export function buildPreviewCleanupPlan(
+  laneId: string,
+  repoCleanupHook?: string,
+): PreviewCleanupPlan {
+  const envName = wranglerEnvName(laneId);
+  return {
+    wranglerEnvName: envName,
+    deleteCommand: `wrangler delete --env ${envName}`,
+    repoCleanupHook,
+  };
 }

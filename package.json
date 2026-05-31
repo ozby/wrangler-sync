@@ -38,5 +38,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ozby/wrangler-sync.git"
-  }
+  },
+  "packageManager": "pnpm@11.5.0"
 }

@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { writeFileSync, readFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { syncWranglerBindings } from "./index.js";
+import {
+  buildPreviewCleanupPlan,
+  derivePreviewHostname,
+  syncWranglerBindings,
+} from "./index.js";
 
 const FIXTURE_TOML = `
 [env.dev]
@@ -160,5 +164,35 @@ describe("syncWranglerBindings", () => {
         stackOutputs,
       }),
     ).toThrow('Pulumi output "doesNotExist" not found');
+  });
+});
+
+describe("derivePreviewHostname", () => {
+  it("derives hostnames from internal lane IDs using dash-safe env names", () => {
+    expect(derivePreviewHostname("dev", "example.com")).toBe("dev.example.com");
+    expect(derivePreviewHostname("preview_main", "example.com")).toBe(
+      "preview-main.example.com",
+    );
+    expect(derivePreviewHostname("preview_pr_42", "example.com")).toBe(
+      "preview-pr-42.example.com",
+    );
+  });
+});
+
+describe("buildPreviewCleanupPlan", () => {
+  it("renders a wrangler delete command for preview lanes", () => {
+    expect(buildPreviewCleanupPlan("preview_main")).toEqual({
+      wranglerEnvName: "preview-main",
+      deleteCommand: "wrangler delete --env preview-main",
+      repoCleanupHook: undefined,
+    });
+  });
+
+  it("preserves the explicit production env-name mapping", () => {
+    expect(buildPreviewCleanupPlan("prd", "pnpm run cleanup:preview")).toEqual({
+      wranglerEnvName: "production",
+      deleteCommand: "wrangler delete --env production",
+      repoCleanupHook: "pnpm run cleanup:preview",
+    });
   });
 });

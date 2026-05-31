@@ -3,7 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { syncJsoncBindings } from "./patch-jsonc.js";
+import {
+  syncJsoncBindings,
+  upsertEnvCustomDomainRoute,
+  upsertEnvDurableObjectBinding,
+} from "./patch-jsonc.js";
 
 // Minimal wrangler.jsonc fixture — realistic structure with comments and placeholders.
 const PLATFORM_API_FIXTURE = `{
@@ -82,11 +86,64 @@ const DISPATCH_FIXTURE = `{
 }
 `;
 
+const PREVIEW_CONTRACT_FIXTURE = `{
+  "name": "preview-contract-worker",
+  "env": {
+    "preview-pr-123": {
+      "name": "preview-contract-pr-123"
+    },
+    "preview-main": {
+      "name": "preview-contract-main",
+      "routes": [
+        {
+          "pattern": "old-preview-main.example.com",
+          "custom_domain": true
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "PREVIEW_COORDINATOR",
+            "class_name": "OldPreviewCoordinator"
+          }
+        ]
+      }
+    },
+    "production": {
+      "name": "preview-contract-production",
+      "routes": [
+        {
+          "pattern": "prod.example.com",
+          "custom_domain": true
+        }
+      ]
+    }
+  }
+}
+`;
+
 function writeTmpJsonc(fixture: string): string {
   const dir = mkdtempSync(path.join(os.tmpdir(), "wrangler-sync-test-"));
   const filePath = path.join(dir, "wrangler.jsonc");
   writeFileSync(filePath, fixture, "utf-8");
   return filePath;
+}
+
+function sectionFrom(
+  content: string,
+  startMarker: string,
+  endMarker?: string,
+): string {
+  const start = content.indexOf(startMarker);
+  expect(start).toBeGreaterThanOrEqual(0);
+
+  if (!endMarker) {
+    return content.slice(start);
+  }
+
+  const end = content.indexOf(endMarker, start);
+  expect(end).toBeGreaterThan(start);
+  return content.slice(start, end);
 }
 
 describe("syncJsoncBindings", () => {
@@ -256,5 +313,74 @@ describe("syncJsoncBindings", () => {
     const written = readFileSync(wranglerPath, "utf-8");
     expect(written).toContain("// Preview environment");
     expect(written).toContain("// Overridden by CLI deploy");
+  });
+});
+
+describe("env-specific JSONC preview helpers", () => {
+  it("renders a custom-domain route inside a dash-safe env block when routes are missing", () => {
+    const rendered = upsertEnvCustomDomainRoute(PREVIEW_CONTRACT_FIXTURE, "preview-pr-123", {
+      pattern: "preview-pr-123.edge-matte.ozby.dev",
+    });
+
+    const previewPrSection = sectionFrom(rendered, '"preview-pr-123"', '"preview-main"');
+    expect(previewPrSection).toContain('"routes": [');
+    expect(previewPrSection).toContain('"pattern": "preview-pr-123.edge-matte.ozby.dev"');
+    expect(previewPrSection).toContain('"custom_domain": true');
+
+    const productionSection = sectionFrom(rendered, '"production"');
+    expect(productionSection).toContain('"pattern": "prod.example.com"');
+  });
+
+  it("patches the env-specific custom-domain route without touching sibling envs", () => {
+    const rendered = upsertEnvCustomDomainRoute(PREVIEW_CONTRACT_FIXTURE, "preview-main", {
+      pattern: "preview-main.edge-matte.ozby.dev",
+    });
+
+    const previewMainSection = sectionFrom(rendered, '"preview-main"', '"production"');
+    expect(previewMainSection).toContain('"pattern": "preview-main.edge-matte.ozby.dev"');
+    expect(previewMainSection).not.toContain('"pattern": "old-preview-main.example.com"');
+
+    const productionSection = sectionFrom(rendered, '"production"');
+    expect(productionSection).toContain('"pattern": "prod.example.com"');
+  });
+
+  it("renders a Durable Object binding inside a dash-safe env block when durable_objects is missing", () => {
+    const rendered = upsertEnvDurableObjectBinding(
+      PREVIEW_CONTRACT_FIXTURE,
+      "preview-pr-123",
+      {
+        name: "PREVIEW_COORDINATOR",
+        className: "PreviewCoordinator",
+        scriptName: "edge-matte-preview-pr-123",
+      },
+    );
+
+    const previewPrSection = sectionFrom(rendered, '"preview-pr-123"', '"preview-main"');
+    expect(previewPrSection).toContain('"durable_objects": {');
+    expect(previewPrSection).toContain('"bindings": [');
+    expect(previewPrSection).toContain('"name": "PREVIEW_COORDINATOR"');
+    expect(previewPrSection).toContain('"class_name": "PreviewCoordinator"');
+    expect(previewPrSection).toContain('"script_name": "edge-matte-preview-pr-123"');
+  });
+
+  it("patches an env-specific Durable Object binding inside existing bindings", () => {
+    const rendered = upsertEnvDurableObjectBinding(
+      PREVIEW_CONTRACT_FIXTURE,
+      "preview-main",
+      {
+        name: "PREVIEW_COORDINATOR",
+        className: "PreviewCoordinator",
+        scriptName: "edge-matte-preview-main",
+      },
+    );
+
+    const previewMainSection = sectionFrom(rendered, '"preview-main"', '"production"');
+    expect(previewMainSection).toContain('"name": "PREVIEW_COORDINATOR"');
+    expect(previewMainSection).toContain('"class_name": "PreviewCoordinator"');
+    expect(previewMainSection).toContain('"script_name": "edge-matte-preview-main"');
+    expect(previewMainSection).not.toContain('"class_name": "OldPreviewCoordinator"');
+
+    const productionSection = sectionFrom(rendered, '"production"');
+    expect(productionSection).toContain('"pattern": "prod.example.com"');
   });
 });

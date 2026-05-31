@@ -34,3 +34,9 @@ export interface SyncResult {
   patches: Array<{ header: string; key: string; oldValue: string; newValue: string }>;
   verified: Array<{ pulumiOutput: string; pattern: string; found: boolean }>;
 }
+
+export interface PreviewCleanupPlan {
+  wranglerEnvName: string;
+  deleteCommand: string;
+  repoCleanupHook?: string;
+}
