@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   patchEnvBinding,
+  renderEnvDurableObjectBinding,
   renderEnvCustomDomainRoute,
+  upsertEnvDurableObjectBinding,
   upsertEnvCustomDomainRoute,
   wranglerEnvName,
 } from "./patch-toml.js";
@@ -89,6 +91,41 @@ describe("renderEnvCustomDomainRoute", () => {
         "custom_domain = true",
       ].join("\n"),
     );
+  });
+});
+
+describe("env-specific Durable Object TOML helpers", () => {
+  it("renders an env-specific Durable Object binding block", () => {
+    expect(
+      renderEnvDurableObjectBinding("preview-pr-42", {
+        name: "PREVIEW_COORDINATOR",
+        className: "PreviewCoordinator",
+        scriptName: "edge-matte-preview-pr-42",
+      }),
+    ).toBe(
+      [
+        "[[env.preview-pr-42.durable_objects.bindings]]",
+        'name = "PREVIEW_COORDINATOR"',
+        'class_name = "PreviewCoordinator"',
+        'script_name = "edge-matte-preview-pr-42"',
+      ].join("\n"),
+    );
+  });
+
+  it("inserts a Durable Object binding for a dashed preview env without touching sibling envs", () => {
+    const result = upsertEnvDurableObjectBinding(DASHED_ENV_TOML, "preview-pr-42", {
+      name: "PREVIEW_COORDINATOR",
+      className: "PreviewCoordinator",
+      scriptName: "edge-matte-preview-pr-42",
+    });
+
+    const doHeaderIndex = result.indexOf("[[env.preview-pr-42.durable_objects.bindings]]");
+    const varsHeaderIndex = result.indexOf("[env.preview-pr-42.vars]");
+    expect(doHeaderIndex).toBeGreaterThan(result.indexOf("[env.preview-pr-42]"));
+    expect(varsHeaderIndex).toBeGreaterThan(doHeaderIndex);
+    expect(result).toContain('name = "PREVIEW_COORDINATOR"');
+    expect(result).toContain('class_name = "PreviewCoordinator"');
+    expect(result).toContain('script_name = "edge-matte-preview-pr-42"');
   });
 });
 

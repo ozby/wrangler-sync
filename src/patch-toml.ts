@@ -44,6 +44,66 @@ export function renderEnvCustomDomainRoute(envName: string, pattern: string): st
   ].join("\n");
 }
 
+export interface TomlDurableObjectBinding {
+  name: string;
+  className: string;
+  scriptName?: string;
+}
+
+/**
+ * Render a Wrangler TOML Durable Object binding block for a specific env.
+ */
+export function renderEnvDurableObjectBinding(
+  envName: string,
+  binding: TomlDurableObjectBinding,
+): string {
+  const lines = [
+    `[[env.${envName}.durable_objects.bindings]]`,
+    `name = "${binding.name}"`,
+    `class_name = "${binding.className}"`,
+  ];
+
+  if (binding.scriptName !== undefined) {
+    lines.push(`script_name = "${binding.scriptName}"`);
+  }
+
+  return lines.join("\n");
+}
+
+/**
+ * Upsert an env-specific Durable Object binding for a Wrangler TOML document.
+ *
+ * If a binding with the same `name` exists in the env, patches class/script
+ * fields in place. Otherwise inserts a new binding block immediately after the
+ * env block and before nested env tables such as `[env.<name>.vars]`.
+ */
+export function upsertEnvDurableObjectBinding(
+  toml: string,
+  envName: string,
+  binding: TomlDurableObjectBinding,
+): string {
+  const bindingHeader = `[[env.${envName}.durable_objects.bindings]]`;
+  const existingBlocks = findBlocks(toml, bindingHeader);
+
+  for (const block of existingBlocks) {
+    const nameMatch = /(?:^|\n)\s*name\s*=\s*"([^"]*)"/m.exec(block.body);
+    if (nameMatch?.[1] !== binding.name) {
+      continue;
+    }
+
+    let patched = block.body;
+    patched = patchBlockValue(patched, "class_name", binding.className);
+    if (binding.scriptName !== undefined) {
+      patched = patchBlockValue(patched, "script_name", binding.scriptName);
+    }
+    return toml.slice(0, block.start) + patched + toml.slice(block.end);
+  }
+
+  const envBlock = findBlock(toml, `[env.${envName}]`);
+  const insertion = `\n\n${renderEnvDurableObjectBinding(envName, binding)}`;
+  return toml.slice(0, envBlock.end) + insertion + toml.slice(envBlock.end);
+}
+
 /**
  * Upsert the env-specific custom-domain route for a Wrangler TOML document.
  *
@@ -123,4 +183,37 @@ function findBlock(
     end: blockEnd,
     body: toml.slice(blockStart, blockEnd),
   };
+}
+
+function findBlocks(
+  toml: string,
+  header: string,
+): Array<{ start: number; end: number; body: string }> {
+  const blocks: Array<{ start: number; end: number; body: string }> = [];
+  let startIndex = 0;
+
+  while (true) {
+    const blockStart = toml.indexOf(header, startIndex);
+    if (blockStart === -1) {
+      return blocks;
+    }
+
+    const nextHeader = toml.indexOf("\n[", blockStart + header.length);
+    const blockEnd = nextHeader === -1 ? toml.length : nextHeader;
+    blocks.push({
+      start: blockStart,
+      end: blockEnd,
+      body: toml.slice(blockStart, blockEnd),
+    });
+    startIndex = blockEnd;
+  }
+}
+
+function patchBlockValue(block: string, key: string, value: string): string {
+  const keyRe = new RegExp(`(^|\\n)(\\s*${key}\\s*=\\s*)"[^"]*"`, "m");
+  if (keyRe.test(block)) {
+    return block.replace(keyRe, `$1$2"${value}"`);
+  }
+
+  return `${block}\n${key} = "${value}"`;
 }

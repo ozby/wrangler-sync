@@ -1,11 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  patchEnvBinding,
-  renderEnvCustomDomainRoute,
-  upsertEnvCustomDomainRoute,
-  wranglerEnvName,
-} from "./patch-toml.js";
+import { patchEnvBinding, wranglerEnvName } from "./patch-toml.js";
 import { runPulumiStackOutput } from "./run-pulumi.js";
 import {
   syncJsoncBindings,
@@ -22,7 +17,9 @@ export type {
 } from "./types.js";
 export {
   patchEnvBinding,
+  renderEnvDurableObjectBinding,
   renderEnvCustomDomainRoute,
+  upsertEnvDurableObjectBinding as upsertEnvTomlDurableObjectBinding,
   upsertEnvCustomDomainRoute,
   wranglerEnvName,
 } from "./patch-toml.js";
