@@ -17,7 +17,8 @@ pnpm add @ozby/wrangler-sync
 ```
 
 Add to `.npmrc`:
-```
+
+```ini
 @ozby:registry=https://npm.pkg.github.com
 ```
 
@@ -68,3 +69,12 @@ syncJsoncBindings({
 ```sh
 npx @ozby/wrangler-sync <stack> <wrangler.toml> <mappings.json>
 ```
+
+## Releases
+
+Releases are managed with Changesets:
+
+- `pnpm changeset` — record a release note
+- `pnpm version` — apply pending version bumps locally
+- GitHub Actions opens/updates the **Version Packages** PR on `main`
+- merged version PRs publish to GitHub Packages
