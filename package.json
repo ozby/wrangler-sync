@@ -1,11 +1,11 @@
 {
   "name": "@ozby/wrangler-sync",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Sync Pulumi stack outputs into wrangler.toml binding IDs in-place",
   "type": "module",
   "sideEffects": false,
   "bin": {
-    "wrangler-sync": "./dist/bin/wrangler-sync.js"
+    "wrangler-sync": "dist/bin/wrangler-sync.js"
   },
   "exports": {
     ".": {
@@ -19,9 +19,16 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "version": "changeset version",
+    "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build",
+    "release:check": "pnpm run prepublishOnly && npm pack --dry-run",
+    "release:publish": "pnpm publish --access public --no-git-checks"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@types/node": "^22.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.6.0",
