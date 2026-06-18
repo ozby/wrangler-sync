@@ -25,7 +25,7 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run src",
+    "test": "vitest run src packages/cloudflare/src",
     "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build"
   },
   "engines": {
