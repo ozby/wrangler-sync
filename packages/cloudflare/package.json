@@ -1,0 +1,44 @@
+{
+  "name": "@ozby/cloudflare",
+  "version": "0.0.0",
+  "description": "Worker-native Cloudflare helpers for contact forms, Email Sending, Turnstile, and deploy plans",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./contact-form": {
+      "types": "./dist/contact-form.d.ts",
+      "default": "./dist/contact-form.js"
+    },
+    "./deploy": {
+      "types": "./dist/deploy.d.ts",
+      "default": "./dist/deploy.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run src",
+    "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public",
+    "tag": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ozby/cloudflare.git",
+    "directory": "packages/cloudflare"
+  }
+}

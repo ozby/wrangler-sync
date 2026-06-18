@@ -1,31 +1,17 @@
 {
-  "name": "@ozby/wrangler-sync",
-  "version": "0.3.0",
-  "description": "Sync Pulumi stack outputs into wrangler.toml binding IDs in-place",
+  "name": "cloudflare",
+  "private": true,
+  "description": "Cloudflare packages for Wrangler config sync, Worker deploys, and Worker-native forms",
   "type": "module",
-  "sideEffects": false,
-  "bin": {
-    "wrangler-sync": "dist/bin/wrangler-sync.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsup",
-    "typecheck": "tsc --noEmit",
+    "build": "pnpm --filter './packages/*' --if-present run build",
+    "typecheck": "pnpm --filter './packages/*' --if-present run typecheck && tsc --noEmit",
     "test": "vitest run",
     "changeset": "changeset",
     "changeset:status": "changeset status",
     "version": "changeset version",
-    "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build",
-    "release:check": "pnpm run prepublishOnly && npm pack --dry-run",
-    "release:publish": "pnpm publish --access public --no-git-checks"
+    "release:check": "pnpm run typecheck && pnpm run test && pnpm run build && pnpm --filter @ozby/wrangler-sync exec npm pack --dry-run && pnpm --filter @ozby/cloudflare exec npm pack --dry-run",
+    "release:publish": "pnpm -r --filter './packages/*' publish --access public --no-git-checks"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
@@ -37,15 +23,6 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "public",
-    "tag": "latest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ozby/wrangler-sync.git"
   },
   "packageManager": "pnpm@11.5.0"
 }

@@ -4,3 +4,16 @@ dist/
 *.tsbuildinfo
 .tshy/
 .tshy-build/
+.agent/
+.agents/
+.cursor/
+.omx/
+.omc/
+.opencode/
+.codex/
+.claude/settings.json
+.claude/settings.local.json
+.claude/agents/
+.claude/hooks/
+.claude/rules/
+.claude/skills/
