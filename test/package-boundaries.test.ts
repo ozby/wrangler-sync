@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -33,10 +33,21 @@ describe("package boundaries", () => {
   });
 
   it("records the new Cloudflare helper release on @ozby/cloudflare", () => {
-    const changeset = readFileSync(join(root, ".changeset/cloudflare-contact-deploy.md"), "utf8");
+    const changesetPath = join(root, ".changeset/cloudflare-contact-deploy.md");
 
-    expect(changeset).toContain('"@ozby/cloudflare": minor');
-    expect(changeset).not.toContain('"@ozby/wrangler-sync": minor');
+    if (existsSync(changesetPath)) {
+      const changeset = readFileSync(changesetPath, "utf8");
+      expect(changeset).toContain('"@ozby/cloudflare": minor');
+      expect(changeset).not.toContain('"@ozby/wrangler-sync": minor');
+      return;
+    }
+
+    const pkg = json("packages/cloudflare/package.json");
+    const changelog = readFileSync(join(root, "packages/cloudflare/CHANGELOG.md"), "utf8");
+
+    expect(pkg.version).toBe("0.1.0");
+    expect(changelog).toContain("## 0.1.0");
+    expect(changelog).toContain("Cloudflare Worker contact form helpers");
   });
 
   it("does not publish local link, file, or parent-relative package surfaces", () => {
