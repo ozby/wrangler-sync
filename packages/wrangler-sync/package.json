@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ozby/cloudflare.git",
+    "url": "git+https://github.com/ozby/wrangler-sync.git",
     "directory": "packages/wrangler-sync"
   }
 }

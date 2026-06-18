@@ -8,7 +8,9 @@ on:
       - ".changeset/**"
       - "package.json"
       - "pnpm-lock.yaml"
-      - "CHANGELOG.md"
+      - "packages/**/package.json"
+      - "packages/**/CHANGELOG.md"
+      - "packages/**/README.md"
       - ".github/workflows/release.yml"
   workflow_dispatch:
 

@@ -11,7 +11,7 @@
     "changeset:status": "changeset status",
     "version": "changeset version",
     "release:check": "pnpm run typecheck && pnpm run test && pnpm run build && pnpm --filter @ozby/wrangler-sync exec npm pack --dry-run && pnpm --filter @ozby/cloudflare exec npm pack --dry-run",
-    "release:publish": "pnpm -r --filter './packages/*' publish --access public --no-git-checks"
+    "release:publish": "pnpm run release:check && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
