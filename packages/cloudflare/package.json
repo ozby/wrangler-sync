@@ -1,6 +1,6 @@
 {
   "name": "@ozby/cloudflare",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Worker-native Cloudflare helpers for contact forms, Email Sending, Turnstile, and deploy plans",
   "type": "module",
   "sideEffects": false,
