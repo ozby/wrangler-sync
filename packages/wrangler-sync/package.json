@@ -1,0 +1,40 @@
+{
+  "name": "@ozby/wrangler-sync",
+  "version": "0.3.0",
+  "description": "Sync Pulumi stack outputs into Wrangler config binding IDs in-place",
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "wrangler-sync": "dist/bin/wrangler-sync.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run src",
+    "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public",
+    "tag": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ozby/wrangler-sync.git",
+    "directory": "packages/wrangler-sync"
+  }
+}

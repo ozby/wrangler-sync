@@ -2,11 +2,20 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ES2024", "DOM", "DOM.Iterable"],
-    "types": ["node", "vitest"],
+    "lib": [
+      "ES2024",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "strict": true,
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true,
@@ -16,8 +25,14 @@
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true
+    "outDir": "./dist"
   },
-  "include": ["test/**/*.ts", "vitest.config.ts"],
-  "exclude": ["node_modules", "dist", "packages/**/dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
 }
